@@ -1,13 +1,8 @@
-import Network.HTTP 
+import Network.HTTP.Simple
+import qualified Data.ByteString.Char8 as BS
 
-url = "http://www.happylearnhaskelltutorial.com/contents.html"
+request = parseRequest_ "https://google.com"
 
-response = simpleHTTP (getRequest url)
+response = httpBS request
 
-pageContent = response >>= getResponseBody
-
--- Todo: check statusCode
-
-main = do
-  pageContentInString <- pageContent
-  putStrLn pageContentInString
+main = response >>= BS.putStrLn . getResponseBody
