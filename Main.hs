@@ -1,9 +1,12 @@
 import Network.HTTP.Simple
+
+import Control.Monad
+
 import Text.Parsec
 import Text.Parsec.Char
 import Text.Parsec.Combinator
 import Text.Parsec.ByteString
-import qualified Text.Parsec.Token as T
+import Text.Parsec.Token
 
 url = "https://haskell.org"
 request = parseRequest_ url
@@ -16,16 +19,5 @@ data HTMLExpr = Link String
 
 parseHTMLLink :: Parser HTMLExpr
 parseHTMLLink = do
-    skipMany1 notLink
-    insideA = between (T.symbol "<a>") (T.symbol "</a>") 
-    -- go to href
-    void $ insideA $ T.lexeme $ string "href=\""
-    -- get link
-    parseLink <- link
-    -- close href
-    void $ char '"'
-
-
-  where 
-    notLink = satisfy (\a -> /= "<a>")
-    link = satisfy (\a -> /= '"')
+    between ("<a>" <$> symbol) ("</a>" <$> symbol) (string "test")
+    return $ Link "test"
