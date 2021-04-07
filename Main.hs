@@ -14,6 +14,7 @@ responseInString = response >>= putStrLn . show
 
 -- Expressions to parse
 data HTMLExpr = Link String
+              | Other Int
                 deriving (Eq, Show)
 
 whitespace :: Parser ()
@@ -38,8 +39,13 @@ parseHTMLLink = do
     return $ Link link
   where parseLink = many1 $ satisfy (\a -> a /= '"')
 
+parseHTMLOther :: Parser HTMLExpr
+parseHTMLOther = do
+    void $ anyChar
+    return $ Other 0
+
 parseHTML :: Parser [HTMLExpr]
-parseHTML = manyTill parseHTMLLink eof
+parseHTML = many $ try parseHTMLLink <|> parseHTMLOther
 
 main :: IO ()
 main = do
