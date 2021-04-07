@@ -39,7 +39,7 @@ parseHTMLLink = do
   where parseLink = many1 $ satisfy (\a -> a /= '"')
 
 parseHTML :: Parser [HTMLExpr]
-parseHTML = many parseHTMLLink
+parseHTML = manyTill parseHTMLLink eof
 
 main :: IO ()
 main = do
