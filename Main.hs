@@ -31,11 +31,12 @@ simpleParser p = parse p ""
 
 parseHTMLLink :: Parser HTMLExpr
 parseHTMLLink = do
-    let insideA = between (lexeme $ string "<a>") (lexeme $ string "</a>")
-    void $ insideA $ string "href=" -- go to href
+    void $ lexeme $ string "<a" -- go to a element
+    void $ lexeme $ string "href=" -- go to href
     void $ char '"' -- open href
     link <- parseLink
     void $ char '"' -- close href
+    void $ lexeme $ string ">" -- close a element
     return $ Link link
   where parseLink = many1 $ satisfy (\a -> a /= '"')
 
