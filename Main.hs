@@ -1,5 +1,6 @@
 import Network.HTTP.Simple
 import qualified Data.ByteString as BS
+import Data.Either
 import Control.Monad
 
 import Text.Parsec
@@ -14,7 +15,7 @@ responseInString = response >>= putStrLn . show
 
 -- Expressions to parse
 data HTMLExpr = Link String
-              | Other Int
+              | Other ()
                 deriving (Eq, Show)
 
 whitespace :: Parser ()
@@ -32,26 +33,31 @@ simpleParser p = parse p ""
 parseHTMLLink :: Parser HTMLExpr
 parseHTMLLink = do
     void $ lexeme $ string "<a" -- go to a element
-    void $ lexeme $ string "href=" -- go to href
+    void $ manyTill anyChar (try (string "href="))
     void $ char '"' -- open href
     link <- parseLink
     void $ char '"' -- close href
-    void $ lexeme $ string ">" -- close a element
+    void $ manyTill anyChar (try (string ">")) -- close element
     return $ Link link
   where parseLink = many1 $ satisfy (\a -> a /= '"')
 
 parseHTMLOther :: Parser HTMLExpr
 parseHTMLOther = do
     void $ anyChar
-    return $ Other 0
+    return $ Other ()
 
 parseHTML :: Parser [HTMLExpr]
 parseHTML = many $ try parseHTMLLink <|> parseHTMLOther
+
+getLinksFromParsedList :: Either ParseError [HTMLExpr] -> [HTMLExpr]
+getLinksFromParsedList list = do
+    either (\left -> []) getLinks list
+  where getLinks = \a -> filter (\b -> b /= Other ()) a
 
 main :: IO ()
 main = do
     r <- response
     let bsResponseBody = getResponseBody r
-    let links = simpleParser parseHTML bsResponseBody
-    print $ show links
+    let parsedHTML = simpleParser parseHTML bsResponseBody
+    print $ show $ getLinksFromParsedList parsedHTML
 
