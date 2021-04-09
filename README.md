@@ -1,6 +1,6 @@
 # haskell-html-parser
 
-'''haskell
+```haskell
 import qualified Network.HTTP.Simple as Net
 import qualified Data.ByteString as BS
 import Data.Either
@@ -64,4 +64,4 @@ main = do
     let bsResponseBody = Net.getResponseBody r
     let parsedHTML = simpleParser parseHTML bsResponseBody
     print $ show $ getLinksFromParsedHTML parsedHTML
-'''
+```
