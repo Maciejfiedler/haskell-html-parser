@@ -1,5 +1,9 @@
 # haskell-html-parser
 
+Libraries required:
+* http-conduit
+* parsec
+
 ```haskell
 import qualified Network.HTTP.Simple as Net
 import qualified Data.ByteString as BS
