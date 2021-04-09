@@ -1,4 +1,4 @@
-import Network.HTTP.Simple
+import qualified Network.HTTP.Simple as Net
 import qualified Data.ByteString as BS
 import Data.Either
 import Control.Monad
@@ -9,9 +9,8 @@ import Text.Parsec.Combinator
 import Text.Parsec.ByteString
 
 url = "https://haskell.org"
-request = parseRequest_ url
-response = httpBS request
-responseInString = response >>= putStrLn . show
+request = Net.parseRequest_ url
+response = Net.httpBS request
 
 -- Expressions to parse
 data HTMLExpr = Link String
@@ -39,25 +38,26 @@ parseHTMLLink = do
     void $ char '"' -- close href
     void $ manyTill anyChar (try (string ">")) -- close element
     return $ Link link
-  where parseLink = many1 $ satisfy (\a -> a /= '"')
+  where parseLink = many1 $ satisfy (\a -> a /= '"') -- stops if it encounters "
 
-parseHTMLOther :: Parser HTMLExpr
-parseHTMLOther = do
+parseHTMLOther :: Parser HTMLExpr -- will parse any charachter so it will always succseed
+parseHTMLOther = do 
     void $ anyChar
     return $ Other ()
 
 parseHTML :: Parser [HTMLExpr]
-parseHTML = many $ try parseHTMLLink <|> parseHTMLOther
+parseHTML = many $ try parseHTMLLink <|> parseHTMLOther 
+-- if parsing an <a> element fails 
+-- it tries parseHTMLOther and 
+-- try to parse the <a>  element again
 
-getLinksFromParsedList :: Either ParseError [HTMLExpr] -> [HTMLExpr]
-getLinksFromParsedList list = do
-    either (\left -> []) getLinks list
+getLinksFromParsedHTML:: Either ParseError [HTMLExpr] -> [HTMLExpr] -- will take the parsed HTML and will return only the links
+getLinksFromParsedHTML list = either (\left -> []) getLinks list
   where getLinks = \a -> filter (\b -> b /= Other ()) a
 
 main :: IO ()
 main = do
-    r <- response
-    let bsResponseBody = getResponseBody r
+    r <- response 
+    let bsResponseBody = Net.getResponseBody r
     let parsedHTML = simpleParser parseHTML bsResponseBody
-    print $ show $ getLinksFromParsedList parsedHTML
-
+    print $ show $ getLinksFromParsedHTML parsedHTML
